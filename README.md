@@ -1,347 +1,520 @@
-# RoutineFlow - Documentação Técnica
+# RoutineFlow — Documentação Técnica
 
-## 1. Visão Geral do Projeto
+> Aplicação web mobile-first para rastreamento de hábitos e rotinas semanais.
 
-**RoutineFlow** é uma aplicação web mobile-first para rastreamento de hábitos e rotinas semanais. O app permite que usuários criem tarefas recorrentes para cada dia da semana, acompanhem seu progresso diário e visualizem sua consistência através de um mapa de calor interativo.
+---
 
-### Público-Alvo
+## Sumário
+
+1. [Visão Geral](#1-visão-geral)
+2. [Demonstração](#2-demonstração)
+3. [Funcionalidades](#3-funcionalidades)
+4. [Arquitetura](#4-arquitetura)
+5. [Stack Tecnológica](#5-stack-tecnológica)
+6. [Decisões Técnicas](#6-decisões-técnicas)
+7. [Modelo de Dados](#7-modelo-de-dados)
+8. [Como Executar Localmente](#8-como-executar-localmente)
+9. [Variáveis de Ambiente](#9-variáveis-de-ambiente)
+10. [Deploy](#10-deploy)
+11. [Rotas da Aplicação](#11-rotas-da-aplicação)
+12. [Responsividade](#12-responsividade)
+13. [Tema e Design System](#13-tema-e-design-system)
+14. [Regras de Negócio](#14-regras-de-negócio)
+15. [Créditos](#15-créditos)
+
+---
+
+## 1. Visão Geral
+
+**RoutineFlow** é uma aplicação SPA (Single Page Application) que permite a usuários:
+
+- Configurar tarefas recorrentes para cada dia da semana
+- Criar tarefas avulsas para datas específicas
+- Acompanhar a conclusão diária com checkboxes hierárquicos (tarefa + subtarefas)
+- Visualizar a consistência ao longo do tempo em um mapa de calor interativo
+
+### Público-alvo
 - Pessoas que desejam organizar suas rotinas diárias
 - Usuários que buscam construir hábitos duradouros
-- Indivíduos que se motivam através de visualização de progresso
+- Indivíduos motivados por visualização de progresso
 
 ---
 
-## 2. Funcionalidades Implementadas
+## 2. Demonstração
 
-### 2.1 Sistema de Autenticação
-- **Cadastro de usuários**: Validação de nome (mínimo 3 caracteres), email e senha (mínimo 6 caracteres)
-- **Login**: Verificação de credenciais com feedback visual via notificações toast
-- **Logout**: Redirecionamento automático para a landing page
-- **Persistência de sessão**: Usuário permanece logado até fazer logout manualmente
-- **Dados isolados por usuário**: Cada conta possui suas próprias tarefas e histórico
-
-### 2.2 Gerenciamento de Tarefas (Página "Configurar Rotina")
-- **Criação de tarefas**: Associadas a dias específicos da semana (Domingo a Sábado)
-- **Subtarefas**: Cada tarefa pode conter múltiplas subtarefas
-- **Edição**: Modificação de títulos e subtarefas existentes
-- **Exclusão**: Remoção de tarefas com confirmação visual
-- **Organização visual**: Tarefas agrupadas por dia da semana em abas
-
-### 2.3 Dashboard Diário (Página "Sua Rotina")
-- **Seleção de data**: Dropdowns separados para dia, mês e ano
-- **Anos dinâmicos**: Exibe automaticamente 2 anos anteriores até 7 anos futuros
-- **Lista de tarefas do dia**: Exibe apenas tarefas configuradas para o dia da semana selecionado
-- **Checkboxes interativos**: Marcar/desmarcar tarefas e subtarefas
-- **Lógica inteligente de conclusão**:
-  - Marcar tarefa pai automaticamente marca todas as subtarefas
-  - Completar todas as subtarefas automaticamente marca a tarefa pai
-  - Desmarcar uma subtarefa desmarca a tarefa pai
-- **Porcentagem de progresso**: Cálculo em tempo real baseado em tarefas e subtarefas concluídas
-- **Mensagens motivacionais**: Frases dinâmicas baseadas no dia da semana
-
-### 2.4 Histórico e Mapa de Calor (Página "Histórico")
-- **Mapa de calor responsivo**:
-  - Mobile: 49 dias (7 semanas)
-  - Desktop: 364 dias (1 ano completo)
-- **Atualização automática**: Novo quadrado adicionado a cada dia
-- **Escala de cores**:
-  - Cinza: 0% de conclusão
-  - Azul claro (30%): Baixa conclusão
-  - Azul médio (60%): Conclusão moderada
-  - Azul intenso (100%): Alta conclusão
-- **Tooltips interativos**: Data e porcentagem de conclusão ao passar o mouse
-- **Legenda dos dias**: Indicadores de dia da semana (S, T, Q, Q, S, S, D)
-
-### 2.5 Interface e Experiência do Usuário
-- **Design mobile-first**: Otimizado para smartphones
-- **Menu responsivo**: Sidebar no desktop, menu hambúrguer no mobile
-- **Notificações toast**: Feedback visual para ações do usuário
-- **Animações suaves**: Transições e micro-interações
-- **Tema escuro**: Interface em tons escuros com azul elétrico como cor primária
+A aplicação está publicada em produção via Vercel. Basta criar uma conta para começar a usar.
 
 ---
 
-## 3. Regras de Negócio
+## 3. Funcionalidades
 
 ### 3.1 Autenticação
-| Regra | Descrição |
-|-------|-----------|
-| RN01 | Email deve ser único no sistema |
-| RN02 | Senha deve ter mínimo de 6 caracteres |
-| RN03 | Nome é obrigatório e deve ter mínimo de 3 caracteres |
-| RN04 | Credenciais inválidas exibem mensagem de erro específica |
+- Cadastro com nome, e-mail e senha (mínimo 6 caracteres)
+- Login com persistência de sessão via Supabase Auth (JWT)
+- Logout com limpeza de estado e redirecionamento automático
+- Dados completamente isolados por usuário
 
-### 3.2 Tarefas
-| Regra | Descrição |
-|-------|-----------|
-| RN05 | Cada tarefa pertence a exatamente um dia da semana |
-| RN06 | Tarefas podem ter zero ou mais subtarefas |
-| RN07 | Título da tarefa é obrigatório |
-| RN08 | Subtarefas são opcionais |
+### 3.2 Configurar Rotina (tarefas recorrentes)
+- Criar tarefas associadas a um dia fixo da semana (Dom–Sáb)
+- Adicionar múltiplas subtarefas por tarefa
+- Editar título e subtarefas de tarefas existentes
+- Excluir tarefas com feedback visual
+- Interface em abas, uma por dia da semana
 
-### 3.3 Conclusão de Tarefas
-| Regra | Descrição |
-|-------|-----------|
-| RN09 | Marcar tarefa pai = marca todas as subtarefas |
-| RN10 | Todas subtarefas marcadas = tarefa pai marcada automaticamente |
-| RN11 | Desmarcar qualquer subtarefa = tarefa pai desmarcada |
-| RN12 | Progresso diário = (itens concluídos / total de itens) × 100 |
+### 3.3 Dashboard Diário
+- Seleção de qualquer data (dia, mês e ano independentes)
+- Exibe tarefas recorrentes do dia da semana correspondente
+- Exibe tarefas avulsas criadas para aquela data exata
+- Checkboxes interativos com lógica hierárquica:
+  - Marcar a tarefa pai marca todas as subtarefas
+  - Completar todas as subtarefas marca o pai automaticamente
+  - Desmarcar uma subtarefa desmarca o pai
+- Porcentagem de progresso em tempo real
+- Mensagens motivacionais por dia da semana
 
-### 3.4 Mapa de Calor
-| Regra | Descrição |
-|-------|-----------|
-| RN13 | Cores baseadas na porcentagem de conclusão do dia |
-| RN14 | Dias sem tarefas configuradas = 0% (cinza) |
-| RN15 | Mapa exibe janela móvel a partir da data atual |
+### 3.4 Histórico e Mapa de Calor
+- Mapa de calor responsivo:
+  - **Mobile:** 49 dias (7 semanas)
+  - **Desktop:** 364 dias (1 ano completo)
+- Escala de cores por porcentagem de conclusão:
+  - Cinza → 0%
+  - Azul claro → 1–29%
+  - Azul médio → 30–59%
+  - Azul intenso → 60–100%
+- Tooltips com data e % ao passar o mouse
+- Legenda de dias da semana (S T Q Q S S D)
+
+### 3.5 Interface
+- Design mobile-first
+- Sidebar fixa no desktop / menu hambúrguer no mobile
+- Tema escuro com azul elétrico como cor primária
+- Animações via Framer Motion
+- Notificações toast com feedback contextual
 
 ---
 
-## 4. Arquitetura da Aplicação
+## 4. Arquitetura
 
-### 4.1 Estrutura de Diretórios
+### 4.1 Fluxo de dados
+
 ```
-client/
-├── src/
-│   ├── components/
-│   │   ├── ui/              # Componentes base (shadcn/ui)
-│   │   ├── layout.tsx       # Layout principal com navegação
-│   │   └── heatmap.tsx      # Componente do mapa de calor
-│   ├── pages/
-│   │   ├── landing.tsx      # Página inicial pública
-│   │   ├── auth.tsx         # Login e cadastro
-│   │   ├── dashboard.tsx    # Página "Sua Rotina"
-│   │   ├── setup.tsx        # Página "Configurar Rotina"
-│   │   └── analytics.tsx    # Página "Histórico"
-│   ├── lib/
-│   │   ├── store.tsx        # Context API - estado global
-│   │   └── utils.ts         # Funções utilitárias
-│   ├── hooks/
-│   │   └── use-toast.ts     # Hook para notificações
-│   └── App.tsx              # Rotas da aplicação
-├── index.html
-└── index.css                # Estilos globais e Tailwind
+main.tsx
+  └── App.tsx
+        └── AppProvider (React Context)
+              └── Router (Wouter)
+                    ├── /               → landing.tsx
+                    ├── /login          → auth.tsx
+                    ├── /register       → auth.tsx
+                    ├── /dashboard      → dashboard.tsx  (protegida)
+                    ├── /setup          → setup.tsx      (protegida)
+                    └── /analytics      → analytics.tsx  (protegida)
 ```
 
-### 4.2 Padrão de Estado
-A aplicação utiliza **React Context API** para gerenciamento de estado global:
+### 4.2 Estrutura de diretórios
+
+```
+Daily-Rhythm/
+├── client/
+│   ├── index.html
+│   └── src/
+│       ├── App.tsx                  # Definição de rotas e proteção
+│       ├── main.tsx                 # Ponto de entrada React DOM
+│       ├── index.css                # Estilos globais + tema Tailwind v4
+│       ├── components/
+│       │   ├── ui/                  # 57+ componentes shadcn/ui
+│       │   ├── layout.tsx           # Shell da aplicação + navegação
+│       │   └── heatmap.tsx          # Mapa de calor interativo
+│       ├── pages/
+│       │   ├── landing.tsx          # Página pública inicial
+│       │   ├── auth.tsx             # Login e cadastro
+│       │   ├── dashboard.tsx        # Rastreamento diário
+│       │   ├── setup.tsx            # Configuração da rotina semanal
+│       │   ├── analytics.tsx        # Histórico e mapa de calor
+│       │   └── not-found.tsx        # Página 404
+│       ├── lib/
+│       │   ├── store.tsx            # Context API — estado global e lógica de negócio
+│       │   ├── supabase.ts          # Inicialização do cliente Supabase
+│       │   ├── queryClient.ts       # Configuração do TanStack Query
+│       │   └── utils.ts             # Utilitários (cn helper)
+│       └── hooks/
+│           └── use-toast.ts         # Hook de notificações toast
+├── attached_assets/                 # Assets e imagens do projeto
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+├── postcss.config.js
+└── vercel.json                      # Configuração de SPA routing no Vercel
+```
+
+### 4.3 Gerenciamento de estado
+
+O estado global é gerenciado via **React Context API** em [client/src/lib/store.tsx](client/src/lib/store.tsx). Toda a lógica de negócio (CRUD de tarefas, toggles, cálculo de progresso) reside no contexto, mantendo as páginas responsáveis apenas pela apresentação.
 
 ```typescript
-AppContext {
-  user: User | null           // Usuário logado
-  tasks: Task[]               // Lista de tarefas
-  logs: Record<string, Record<string, boolean>>  // Histórico de conclusões
-  
-  // Ações
-  login(name, email): void
-  logout(): void
-  addTask(title, dayOfWeek, subtasks): void
-  updateTask(taskId, title, subtasks): void
-  deleteTask(taskId): void
-  toggleTask(date, taskId): void
+// Interface do AppContext
+{
+  // Estado
+  user: User | null
+  tasks: Task[]           // Tarefas recorrentes (por dia da semana)
+  dailyTasks: DailyTask[] // Tarefas avulsas (por data específica)
+  logs: Record<string, Record<string, boolean>> // Histórico de conclusões
+
+  // Autenticação
+  login(email, password): Promise<void>
+  logout(): Promise<void>
+
+  // Tarefas recorrentes
+  addTask(title, dayOfWeek, subtasks): Promise<void>
+  updateTask(taskId, title, subtasks): Promise<void>
+  deleteTask(taskId): Promise<void>
+
+  // Tarefas avulsas
+  addDailyTask(title, date, subtasks): Promise<void>
+  updateDailyTask(taskId, title, subtasks): Promise<void>
+  deleteDailyTask(taskId): Promise<void>
+
+  // Rastreamento
+  toggleTask(date, itemId): Promise<void>
   getDailyProgress(date): number
-  getTaskStatus(date, taskId): boolean
+  getTaskStatus(date, itemId): boolean
+  getDailyTasksForDate(date): DailyTask[]
 }
 ```
 
-### 4.3 Modelo de Dados
+### 4.4 Backend — Supabase
 
-#### User
-```typescript
-{
-  id: string
-  name: string
-  email: string
-}
-```
+Toda a persistência é feita via **Supabase** (PostgreSQL gerenciado + Auth):
 
-#### Task
-```typescript
-{
-  id: string
-  title: string
-  dayOfWeek: number  // 0 = Domingo, 6 = Sábado
-  subtasks: SubTask[]
-}
-```
-
-#### SubTask
-```typescript
-{
-  id: string
-  title: string
-}
-```
-
-### 4.4 Persistência
-Atualmente, os dados são persistidos no **localStorage** do navegador:
-- `routineflow_user` - Dados do usuário logado
-- `routineflow_registered_users` - Lista de usuários cadastrados
-- `routineflow_tasks_{email}` - Tarefas do usuário
-- `routineflow_logs_{email}` - Histórico de conclusões do usuário
+| Tabela | Descrição |
+|---|---|
+| `users` | Gerenciada pelo Supabase Auth |
+| `tasks` | Tarefas recorrentes por dia da semana |
+| `task_subtasks` | Subtarefas de tarefas recorrentes |
+| `daily_tasks` | Tarefas avulsas por data específica |
+| `daily_subtasks` | Subtarefas de tarefas avulsas |
+| `checks` | Log de conclusões (user_id + date + item_id + done) |
 
 ---
 
 ## 5. Stack Tecnológica
 
-### 5.1 Frontend
+### Core
+
 | Tecnologia | Versão | Propósito |
-|------------|--------|-----------|
-| React | 18.x | Biblioteca de UI |
-| TypeScript | 5.x | Tipagem estática |
-| Vite | 5.x | Build tool e dev server |
-| Tailwind CSS | 3.x | Framework de estilos |
-| Wouter | 3.x | Roteamento |
-| React Hook Form | 7.x | Gerenciamento de formulários |
-| Zod | 3.x | Validação de schemas |
-| date-fns | 3.x | Manipulação de datas |
-| Framer Motion | 11.x | Animações |
-| Lucide React | 0.x | Ícones |
+|---|---|---|
+| React | 19.2.0 | Biblioteca de UI |
+| TypeScript | 5.6.3 | Tipagem estática |
+| Vite | 7.1.9 | Build tool e dev server |
 
-### 5.2 Componentes UI
-| Biblioteca | Propósito |
-|------------|-----------|
-| shadcn/ui | Componentes base (Button, Card, Input, etc.) |
-| Radix UI | Primitivos acessíveis |
-| Sonner | Notificações toast |
+### Roteamento e Estado
 
-### 5.3 Fontes
-- **Outfit** - Headings (fonte display moderna)
-- **Inter** - Body text (fonte legível)
+| Tecnologia | Versão | Propósito |
+|---|---|---|
+| Wouter | 3.3.5 | Roteamento leve (~1.5 KB) |
+| React Context API | — | Estado global da aplicação |
+| TanStack React Query | 5.60.5 | Gerenciamento de estado servidor |
+
+### Backend
+
+| Tecnologia | Versão | Propósito |
+|---|---|---|
+| Supabase JS | 2.90.1 | Autenticação + banco de dados |
+
+### UI e Estilos
+
+| Tecnologia | Versão | Propósito |
+|---|---|---|
+| Tailwind CSS | 4.1.14 | Framework CSS utilitário |
+| shadcn/ui + Radix UI | — | Componentes acessíveis |
+| Framer Motion | 12.23.24 | Animações e transições |
+| Lucide React | 0.545.0 | Ícones |
+| Sonner | 2.0.7 | Notificações toast |
+
+### Formulários e Validação
+
+| Tecnologia | Versão | Propósito |
+|---|---|---|
+| React Hook Form | 7.66.0 | Gerenciamento de formulários |
+| Zod | 3.25.76 | Validação de schemas |
+| @hookform/resolvers | 3.10.0 | Integração RHF + Zod |
+
+### Utilitários
+
+| Tecnologia | Versão | Propósito |
+|---|---|---|
+| date-fns | 3.6.0 | Manipulação de datas |
+| clsx + tailwind-merge | — | Composição de classes CSS |
+| next-themes | 0.4.6 | Gerenciamento de tema |
+| Recharts | 2.15.4 | Gráficos |
+
+### Tipografia
+
+- **Outfit** — Headings (fonte display moderna)
+- **Inter** — Body text (alta legibilidade)
 
 ---
 
 ## 6. Decisões Técnicas
 
-### 6.1 Por que React Context ao invés de Redux?
-- Aplicação de escopo pequeno/médio
-- Menor complexidade e boilerplate
-- Suficiente para o número de estados gerenciados
-- Performance adequada para o caso de uso
+### React Context vs Redux
+O escopo de estado da aplicação (usuário, tarefas, logs) não justifica a complexidade do Redux ou Zustand. O Context API é suficiente para o volume de re-renders e evita boilerplate desnecessário.
 
-### 6.2 Por que localStorage ao invés de backend?
-- Protótipo/MVP inicial
-- Zero configuração de infraestrutura
-- Funcionamento offline
-- Simplicidade de implementação
+### Supabase como BaaS
+- PostgreSQL gerenciado sem configuração de servidor
+- Auth com JWT integrado nativamente
+- SDK JavaScript com tipagem completa
+- Tier gratuito adequado para o estágio atual do produto
+- Elimina a necessidade de construir e manter uma API REST própria
 
-### 6.3 Por que Tailwind CSS?
-- Desenvolvimento rápido com classes utilitárias
-- Design system consistente
-- Responsividade fácil de implementar
-- Bundle otimizado (purge de classes não utilizadas)
+### Wouter vs React Router
+Bundle ~7x menor (1.5 KB vs ~10 KB). A API cobre todas as necessidades de roteamento desta aplicação (rotas simples, parâmetros, redirecionamento).
 
-### 6.4 Por que Wouter ao invés de React Router?
-- Bundle menor (~1.5KB vs ~10KB)
-- API mais simples
-- Suficiente para rotas básicas da aplicação
+### Tailwind CSS v4
+A versão 4 integra diretamente via plugin Vite, sem arquivo de configuração externo obrigatório. O sistema de design é definido inteiramente via variáveis CSS no [client/src/index.css](client/src/index.css), facilitando customizações de tema.
 
-### 6.5 Design Mobile-First
-- Público-alvo acessa majoritariamente via smartphone
-- CSS organizado de mobile para desktop
-- Breakpoints: `md:` (768px+) para desktop
+### Dois modelos de tarefa: `Task` e `DailyTask`
+- **Task** — tarefa recorrente, amarrada a um dia da semana (ex: "Academia toda segunda")
+- **DailyTask** — tarefa avulsa para uma data específica (ex: "Consulta médica em 15/03")
 
----
+Ambos contribuem para o cálculo de progresso do dia, dando flexibilidade sem poluir a rotina semanal com exceções.
 
-## 7. Dependências do Projeto
+### SPA routing no Vercel
+O [vercel.json](vercel.json) redireciona todas as rotas para `index.html`, permitindo que o Wouter gerencie a navegação no lado do cliente sem erros 404 em refresh ou acesso direto por URL.
 
-### 7.1 Dependências de Produção
 ```json
 {
-  "react": "^18.x",
-  "react-dom": "^18.x",
-  "wouter": "^3.x",
-  "react-hook-form": "^7.x",
-  "@hookform/resolvers": "^3.x",
-  "zod": "^3.x",
-  "date-fns": "^3.x",
-  "framer-motion": "^11.x",
-  "lucide-react": "^0.x",
-  "class-variance-authority": "^0.x",
-  "clsx": "^2.x",
-  "tailwind-merge": "^2.x",
-  "@radix-ui/react-*": "^1.x"
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
 ```
 
-### 7.2 Dependências de Desenvolvimento
-```json
+### Design Mobile-First
+O CSS é escrito pensando em telas pequenas por padrão. Adaptações para desktop usam o prefixo `md:` (≥768 px). O componente de mapa de calor alterna entre 49 dias (mobile) e 364 dias (desktop) usando detecção de breakpoint via hook.
+
+---
+
+## 7. Modelo de Dados
+
+### User
+```typescript
 {
-  "typescript": "^5.x",
-  "vite": "^5.x",
-  "@vitejs/plugin-react": "^4.x",
-  "tailwindcss": "^3.x",
-  "autoprefixer": "^10.x",
-  "postcss": "^8.x"
+  id: string        // UUID gerado pelo Supabase Auth
+  name: string
+  email: string
 }
+```
+
+### Task (recorrente)
+```typescript
+{
+  id: string
+  title: string
+  dayOfWeek: number  // 0 = Domingo ... 6 = Sábado
+  subtasks: SubTask[]
+}
+```
+
+### DailyTask (avulsa)
+```typescript
+{
+  id: string
+  title: string
+  date: string       // formato YYYY-MM-DD
+  subtasks: SubTask[]
+}
+```
+
+### SubTask
+```typescript
+{
+  id: string
+  title: string
+}
+```
+
+### Log de conclusões
+```typescript
+// Estrutura em memória (espelhada na tabela `checks` do Supabase)
+logs: Record<
+  string,          // date (YYYY-MM-DD)
+  Record<
+    string,        // itemId (task ou subtask)
+    boolean        // concluído?
+  >
+>
 ```
 
 ---
 
-## 8. Navegação e Rotas
+## 8. Como Executar Localmente
+
+### Pré-requisitos
+
+- **Node.js** 18 LTS ou superior
+- **npm** 9+ (incluso com o Node.js)
+- Conta no [Supabase](https://supabase.com) com as tabelas configuradas
+
+### Passos
+
+```bash
+# 1. Clone o repositório
+git clone <url-do-repositório>
+cd Daily-Rhythm
+
+# 2. Instale as dependências
+npm install
+
+# 3. Configure as variáveis de ambiente (veja a seção 9)
+cp .env.example .env
+# Edite o .env com suas credenciais do Supabase
+
+# 4. Inicie o servidor de desenvolvimento
+npm run dev
+# Disponível em http://localhost:5173
+```
+
+### Scripts disponíveis
+
+| Comando | Descrição |
+|---|---|
+| `npm run dev` | Inicia o servidor de desenvolvimento com HMR |
+| `npm run build` | Gera o build de produção em `dist/` |
+| `npm run preview` | Serve o build de produção localmente |
+| `npm run check` | Checagem de tipos TypeScript sem emissão de arquivos |
+
+---
+
+## 9. Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+
+```env
+VITE_SUPABASE_URL=https://<seu-projeto>.supabase.co
+VITE_SUPABASE_ANON_KEY=<sua-anon-key>
+```
+
+Ambas as variáveis são encontradas no painel do Supabase em **Project Settings → API**.
+
+> **Importante:** O prefixo `VITE_` é obrigatório para que o Vite exponha as variáveis ao código do cliente.
+
+---
+
+## 10. Deploy
+
+A aplicação é publicada no **Vercel** com integração contínua a partir da branch `main`.
+
+### Configuração no Vercel
+
+1. Importe o repositório no painel do Vercel
+2. Configure as variáveis de ambiente (`VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`)
+3. O Vercel detecta automaticamente o Vite; o comando de build é `npm run build` e o diretório de saída é `dist/`
+4. O arquivo [vercel.json](vercel.json) garante que todas as rotas sejam redirecionadas para `index.html` (necessário para SPA)
+
+---
+
+## 11. Rotas da Aplicação
 
 | Rota | Página | Acesso |
-|------|--------|--------|
-| `/` | Landing Page | Público |
-| `/login` | Tela de Login | Público |
-| `/register` | Tela de Cadastro | Público |
-| `/dashboard` | Sua Rotina | Autenticado |
-| `/analytics` | Histórico | Autenticado |
-| `/setup` | Configurar Rotina | Autenticado |
+|---|---|---|
+| `/` | Landing page | Público |
+| `/login` | Login | Público |
+| `/register` | Cadastro | Público |
+| `/dashboard` | Rastreamento diário | Autenticado |
+| `/setup` | Configurar rotina semanal | Autenticado |
+| `/analytics` | Histórico e mapa de calor | Autenticado |
+
+Rotas protegidas redirecionam para `/login` quando não há sessão ativa.
 
 ---
 
-## 9. Responsividade
+## 12. Responsividade
 
 ### Breakpoints
-- **Mobile**: < 768px (padrão)
-- **Desktop**: >= 768px (`md:` prefix)
 
-### Adaptações por Dispositivo
+| Faixa | Prefixo Tailwind | Comportamento |
+|---|---|---|
+| < 768 px | (padrão) | Mobile |
+| ≥ 768 px | `md:` | Desktop |
+
+### Adaptações por dispositivo
+
 | Elemento | Mobile | Desktop |
-|----------|--------|---------|
-| Menu | Hambúrguer overlay | Sidebar fixa |
-| Mapa de calor | 49 dias | 364 dias |
-| Seletores de data | Empilhados verticalmente | Em linha horizontal |
-| Cards de tarefas | Full width | Grid de 2-3 colunas |
+|---|---|---|
+| Navegação | Menu hambúrguer (overlay) | Sidebar fixa lateral |
+| Mapa de calor | 49 dias (7 semanas) | 364 dias (1 ano) |
+| Seletor de data | Dropdowns empilhados | Dropdowns em linha |
 
 ---
 
-## 10. Cores e Tema
+## 13. Tema e Design System
 
-### Paleta Principal
-| Variável | Valor | Uso |
-|----------|-------|-----|
-| `--primary` | `217 91% 60%` | Azul elétrico - CTAs e destaques |
-| `--background` | `222 47% 11%` | Fundo escuro |
-| `--card` | `217 33% 17%` | Fundo de cards |
-| `--muted` | `215 20% 65%` | Texto secundário |
+O tema é definido como variáveis CSS em [client/src/index.css](client/src/index.css) e consumido pelo Tailwind v4.
+
+### Paleta de cores principal
+
+| Variável | Valor HSL | Uso |
+|---|---|---|
+| `--primary` | `217 91% 60%` | Azul elétrico — CTAs e destaques |
+| `--background` | `222 47% 11%` | Fundo escuro da aplicação |
+| `--card` | `217 33% 17%` | Fundo de cards e painéis |
+| `--muted` | `215 20% 65%` | Texto secundário e placeholders |
+| `--foreground` | `210 40% 98%` | Texto principal |
+
+### Escala do mapa de calor
+
+| Conclusão | Cor |
+|---|---|
+| 0% | Cinza neutro |
+| 1–29% | Azul claro |
+| 30–59% | Azul médio |
+| 60–100% | Azul intenso |
 
 ---
 
-## 11. Créditos
+## 14. Regras de Negócio
 
-**Desenvolvido por:** Rodrigo Barros  
+### Autenticação
+
+| ID | Regra |
+|---|---|
+| RN01 | E-mail deve ser único no sistema |
+| RN02 | Senha deve ter mínimo de 6 caracteres |
+| RN03 | Nome é obrigatório (mínimo 3 caracteres) |
+| RN04 | Sessão é mantida até logout explícito |
+
+### Tarefas
+
+| ID | Regra |
+|---|---|
+| RN05 | Cada tarefa recorrente pertence a exatamente um dia da semana |
+| RN06 | Tarefas avulsas pertencem a uma data específica (YYYY-MM-DD) |
+| RN07 | Tarefas podem ter zero ou mais subtarefas |
+| RN08 | Título da tarefa é obrigatório |
+
+### Lógica de conclusão
+
+| ID | Regra |
+|---|---|
+| RN09 | Marcar tarefa pai → todas as subtarefas são marcadas |
+| RN10 | Todas as subtarefas marcadas → tarefa pai marcada automaticamente |
+| RN11 | Desmarcar qualquer subtarefa → tarefa pai desmarcada |
+| RN12 | Progresso = (itens concluídos ÷ total de itens) × 100 |
+| RN13 | Tarefas recorrentes e avulsas contribuem igualmente para o progresso |
+
+### Mapa de calor
+
+| ID | Regra |
+|---|---|
+| RN14 | Cores baseadas na porcentagem de conclusão do dia |
+| RN15 | Dias sem tarefas configuradas exibem 0% (cinza) |
+| RN16 | A janela exibida é calculada a partir da data atual para o passado |
+
+---
+
+## 15. Créditos
+
+**Desenvolvido por:** Rodrigo Barros
 **LinkedIn:** [linkedin.com/in/rodrigocavalcantedebarros](https://www.linkedin.com/in/rodrigocavalcantedebarros/)
 
 ---
 
-## 12. Limitações Atuais e Próximos Passos
-
-### Limitações (Versão Protótipo)
-- Dados armazenados localmente (não sincronizados entre dispositivos)
-- Sem recuperação de senha
-- Sem backup automático
-
-### Evolução Sugerida (Full-Stack)
-- [ ] Integração com PostgreSQL (Supabase)
-- [ ] API REST para persistência
-- [ ] Autenticação com JWT
-- [ ] Sincronização entre dispositivos
-- [ ] Recuperação de senha por email
-- [ ] Notificações push
-- [ ] Exportação de dados
-
----
-
-*Documentação gerada em Janeiro de 2026*
-*Versão do documento: 1.0*
+*Documentação atualizada em Fevereiro de 2026 — Versão 2.0*
