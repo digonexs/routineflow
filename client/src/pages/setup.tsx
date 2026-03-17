@@ -4,20 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Plus, 
-  Trash2, 
+import {
+  Plus,
+  Trash2,
   Edit2,
   LayoutGrid,
   Check,
-  ChevronDown
+  ChevronDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +36,7 @@ export default function RoutineSetup() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingSubtaskIndex, setEditingSubtaskIndex] = useState<number | null>(null);
   const [expandedTasks, setExpandedTasks] = useState<Record<string, boolean>>({});
+  const [localOrder, setLocalOrder] = useState<Record<number, string[]>>({});
 
   const toggleExpand = (taskId: string) => {
     setExpandedTasks(prev => ({ ...prev, [taskId]: !prev[taskId] }));
@@ -90,7 +93,26 @@ export default function RoutineSetup() {
     setNewSubtask("");
   };
 
-  const dayTasks = tasks.filter((t: Task) => t.dayOfWeek === parseInt(activeDay));
+  const dayKey = parseInt(activeDay);
+  const dayTasks = tasks.filter((t: Task) => t.dayOfWeek === dayKey);
+  const currentOrder = localOrder[dayKey];
+  const orderedDayTasks = currentOrder
+    ? [
+        ...currentOrder.map(id => dayTasks.find(t => t.id === id)).filter(Boolean) as Task[],
+        ...dayTasks.filter(t => !currentOrder.includes(t.id)),
+      ]
+    : dayTasks;
+
+  const moveTask = (taskId: string, direction: "up" | "down") => {
+    const list = orderedDayTasks.map(t => t.id);
+    const idx = list.indexOf(taskId);
+    if (direction === "up" && idx === 0) return;
+    if (direction === "down" && idx === list.length - 1) return;
+    const newList = [...list];
+    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+    [newList[idx], newList[swapIdx]] = [newList[swapIdx], newList[idx]];
+    setLocalOrder(prev => ({ ...prev, [dayKey]: newList }));
+  };
 
   return (
     <div className="space-y-6 pb-20 max-w-2xl mx-auto w-full px-4 pt-4 md:pt-8">
@@ -188,38 +210,60 @@ export default function RoutineSetup() {
           <LayoutGrid className="w-5 h-5 text-primary" />
           Tarefas em {DAYS[parseInt(activeDay)]}
         </h3>
-        {dayTasks.length === 0 ? (
+        {orderedDayTasks.length === 0 ? (
           <p className="text-sm text-muted-foreground italic bg-muted/20 p-4 rounded-lg border border-dashed">
             Nenhuma tarefa cadastrada para este dia.
           </p>
         ) : (
           <div className="space-y-3">
-            {dayTasks.map((task: Task) => (
+            {orderedDayTasks.map((task: Task, index: number) => (
               <div key={task.id} className="bg-card border rounded-lg overflow-hidden group hover:border-primary/50 transition-colors">
                 <div className="p-3 flex items-center justify-between bg-card">
-                  <div className="flex items-center gap-3 cursor-pointer" onClick={() => task.subtasks.length > 0 && toggleExpand(task.id)}>
-                    {task.subtasks.length > 0 && (
-                      <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", expandedTasks[task.id] && "rotate-180")} />
-                    )}
-                    <div>
-                      <p className="font-medium">{task.title}</p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-0.5">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 disabled:opacity-20"
+                        onClick={() => moveTask(task.id, "up")}
+                        disabled={index === 0}
+                      >
+                        <ArrowUp className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 disabled:opacity-20"
+                        onClick={() => moveTask(task.id, "down")}
+                        disabled={index === orderedDayTasks.length - 1}
+                      >
+                        <ArrowDown className="w-3 h-3" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => task.subtasks.length > 0 && toggleExpand(task.id)}>
                       {task.subtasks.length > 0 && (
-                        <p className="text-xs text-muted-foreground">{task.subtasks.length} subtarefas</p>
+                        <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", expandedTasks[task.id] && "rotate-180")} />
                       )}
+                      <div>
+                        <p className="font-medium">{task.title}</p>
+                        {task.subtasks.length > 0 && (
+                          <p className="text-xs text-muted-foreground">{task.subtasks.length} subtarefas</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="h-8 w-8 text-primary hover:bg-primary/10"
                       onClick={() => handleEdit(task)}
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="h-8 w-8 text-destructive hover:bg-destructive/10"
                       onClick={() => deleteTask(task.id)}
                     >
