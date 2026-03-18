@@ -41,6 +41,7 @@ type AppContextType = AppState & {
   addTask: (title: string, dayOfWeek: number, subtasks?: string[]) => void;
   updateTask: (taskId: string, title: string, subtasks: string[]) => void;
   deleteTask: (taskId: string) => void;
+  reorderTasks: (dayOfWeek: number, orderedIds: string[]) => void;
 
   addDailyTask: (title: string, date: string, subtasks?: string[]) => void;
   updateDailyTask: (taskId: string, title: string, subtasks: string[]) => void;
@@ -119,6 +120,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         `,
         )
         .eq("user_id", userId)
+        .order("position", { ascending: true })
         .order("created_at", { ascending: true });
 
       if (tasksErr) {
@@ -299,6 +301,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     setTasks((prev) => prev.filter((t) => t.id !== taskId));
+  };
+
+  const reorderTasks = async (dayOfWeek: number, orderedIds: string[]) => {
+    setTasks((prev) => {
+      const otherDays = prev.filter((t) => t.dayOfWeek !== dayOfWeek);
+      const reordered = orderedIds
+        .map((id) => prev.find((t) => t.id === id))
+        .filter(Boolean) as Task[];
+      return [...otherDays, ...reordered];
+    });
+
+    if (!userId) return;
+    const updates = orderedIds.map((id, index) =>
+      supabase
+        .from("tasks")
+        .update({ position: index })
+        .eq("id", id)
+        .eq("user_id", userId),
+    );
+    const results = await Promise.all(updates);
+    results.forEach(({ error }) => {
+      if (error) console.error("reorderTasks error:", error);
+    });
   };
 
   // =========================
@@ -530,6 +555,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addTask,
       updateTask,
       deleteTask,
+      reorderTasks,
       addDailyTask,
       updateDailyTask,
       deleteDailyTask,
