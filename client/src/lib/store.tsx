@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 
-// Types
 export type SubTask = {
   id: string;
   title: string;
@@ -10,14 +9,14 @@ export type SubTask = {
 export type Task = {
   id: string;
   title: string;
-  dayOfWeek: number; // 0..6
+  dayOfWeek: number;
   subtasks: SubTask[];
 };
 
 export type DailyTask = {
   id: string;
   title: string;
-  date: string; // YYYY-MM-DD
+  date: string;
   subtasks: SubTask[];
 };
 
@@ -31,11 +30,11 @@ export type AppState = {
   user: User | null;
   tasks: Task[];
   dailyTasks: DailyTask[];
-  logs: Record<string, Record<string, boolean>>; // date -> { [itemId]: boolean }
+  logs: Record<string, Record<string, boolean>>;
 };
 
 type AppContextType = AppState & {
-  login: (name: string, email: string) => void; // compat (auth real fica no auth.tsx)
+  login: (name: string, email: string) => void;
   logout: () => void;
 
   addTask: (title: string, dayOfWeek: number, subtasks?: string[]) => void;
@@ -56,7 +55,6 @@ type AppContextType = AppState & {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 function toISODateString(d: Date) {
-  // YYYY-MM-DD
   return d.toISOString().slice(0, 10);
 }
 
@@ -69,9 +67,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const userId = user?.id ?? null;
 
-  // =========================
-  // Auth sync (Supabase -> store)
-  // =========================
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       const u = data.user;
@@ -103,14 +98,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  // =========================
-  // Load all app data from DB when user logs in
-  // =========================
   useEffect(() => {
     if (!userId) return;
 
     const loadAll = async () => {
-      // 1) Tasks + subtasks
       const { data: tasksRows, error: tasksErr } = await supabase
         .from("tasks")
         .select(
@@ -136,7 +127,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setTasks(mapped);
       }
 
-      // 2) Daily tasks + subtasks
       const { data: dailyRows, error: dailyErr } = await supabase
         .from("daily_tasks")
         .select(
@@ -161,8 +151,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setDailyTasks(mapped);
       }
 
-      // 3) Checks (logs)
-      // Carrega um intervalo recente (ex.: últimos 120 dias) pra não trazer "infinito".
       const fromDate = new Date();
       fromDate.setDate(fromDate.getDate() - 120);
 
@@ -191,24 +179,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     void loadAll();
   }, [userId]);
 
-  // =========================
-  // API helpers
-  // =========================
-  const login = (_name: string, _email: string) => {
-    // compat; login real é no auth.tsx
-  };
+  const login = (_name: string, _email: string) => {};
 
   const logout = () => {
     void supabase.auth.signOut();
   };
 
-  // =========================
-  // CRUD: recurring tasks
-  // =========================
   const addTask = async (title: string, dayOfWeek: number, subtaskTitles: string[] = []) => {
     if (!userId) return;
 
-    // 1) cria task
     const { data: t, error: tErr } = await supabase
       .from("tasks")
       .insert([{ user_id: userId, title, day_of_week: dayOfWeek }])
@@ -220,7 +199,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // 2) cria subtasks (se houver)
     let subtasks: SubTask[] = [];
     if (subtaskTitles.length > 0) {
       const { data: sts, error: stErr } = await supabase
@@ -254,7 +232,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateTask = async (taskId: string, title: string, subtaskTitles: string[]) => {
     if (!userId) return;
 
-    // atualiza task
     const { error: upErr } = await supabase
       .from("tasks")
       .update({ title })
@@ -266,7 +243,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // recria subtasks (simples e efetivo)
     await supabase.from("task_subtasks").delete().eq("task_id", taskId).eq("user_id", userId);
 
     let newSubtasks: SubTask[] = [];
@@ -326,9 +302,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  // =========================
-  // CRUD: daily tasks
-  // =========================
   const addDailyTask = async (title: string, date: string, subtaskTitles: string[] = []) => {
     if (!userId) return;
 
@@ -425,9 +398,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setDailyTasks((prev) => prev.filter((t) => t.id !== taskId));
   };
 
-  // =========================
-  // Checks (logs)
-  // =========================
   const toggleTask = async (date: string, taskId: string) => {
     if (!userId) return;
 
@@ -439,18 +409,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const dayLogs = logs[date] || {};
     const newStatus = !dayLogs[taskId];
 
-    // aplica localmente (mesma lógica que você já tinha)
     const applyLocal = () => {
       setLogs((prev) => {
         const current = prev[date] || {};
         let updated: Record<string, boolean> = { ...current, [taskId]: newStatus };
 
-        // Case 1: task principal
         if (task && task.subtasks.length > 0) {
           task.subtasks.forEach((st) => (updated[st.id] = newStatus));
         }
 
-        // Case 2: subtask -> ajustar pai
         if (subtaskParent) {
           const allDone = subtaskParent.subtasks.every((st) => {
             if (st.id === taskId) return newStatus;
@@ -459,12 +426,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
           updated[subtaskParent.id] = allDone ? true : newStatus ? !!current[subtaskParent.id] : false;
         }
 
-        // Case 3: daily principal
         if (dailyTask && dailyTask.subtasks.length > 0) {
           dailyTask.subtasks.forEach((st) => (updated[st.id] = newStatus));
         }
 
-        // Case 4: daily subtask -> ajustar pai
         if (dailySubtaskParent) {
           const allDone = dailySubtaskParent.subtasks.every((st) => {
             if (st.id === taskId) return newStatus;
@@ -479,8 +444,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     applyLocal();
 
-    // Persistência no DB:
-    // Salva o "item_id" como UUID (tabelas usam uuid). Se por algum motivo não for UUID, você vai ver erro aqui.
     const upsertOne = async (itemId: string, done: boolean) => {
       const { error } = await supabase
         .from("checks")
@@ -491,10 +454,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (error) console.error("check upsert error:", error);
     };
 
-    // item principal
     await upsertOne(taskId, newStatus);
 
-    // se é uma task com subtasks, replica
     if (task?.subtasks?.length) {
       await Promise.all(task.subtasks.map((st) => upsertOne(st.id, newStatus)));
     }

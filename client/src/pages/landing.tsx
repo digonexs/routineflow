@@ -22,7 +22,6 @@ export default function Landing() {
       </header>
 
       <main className="flex-1">
-        {/* Hero Section */}
         <section className="px-6 py-24 md:py-32 max-w-6xl mx-auto flex flex-col items-center text-center space-y-8">
           <div className="bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <Zap className="w-4 h-4 fill-primary" /> Organização simplificada para sua vida
@@ -51,7 +50,6 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* Features Grid */}
         <section className="px-6 py-20 bg-secondary/30">
           <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
             <div className="bg-card p-8 rounded-2xl shadow-sm border border-border/50 hover:border-primary/50 transition-colors group">

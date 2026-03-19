@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 export function Heatmap() {
   const { getDailyProgress } = useApp();
   
-  // Use a state for isMobile to avoid hydration mismatch
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -17,9 +16,8 @@ export function Heatmap() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Generate days based on screen size
   const today = new Date();
-  const daysToShow = isMobile ? 49 : 364; // Show 7 weeks on mobile (approx 49 days) to fit perfectly
+  const daysToShow = isMobile ? 49 : 364;
   const startDate = subDays(today, daysToShow - 1);
   const dates = eachDayOfInterval({ start: startDate, end: today });
 

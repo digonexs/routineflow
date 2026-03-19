@@ -23,7 +23,6 @@ import { supabase } from "@/lib/supabase";
 const authSchema = z.object({
   email: z.string().email("Por favor, insira um email válido"),
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
-  // name só é obrigatório no cadastro
   name: z
     .string()
     .min(3, "O nome é obrigatório e deve ter pelo menos 3 caracteres")
@@ -49,7 +48,6 @@ export default function AuthPage({ type }: { type: "login" | "register" }) {
 
     try {
       if (type === "register") {
-        // cadastro
         const { error } = await supabase.auth.signUp({
           email: data.email,
           password: data.password,
@@ -74,12 +72,10 @@ export default function AuthPage({ type }: { type: "login" | "register" }) {
           description: "Confira seu e-mail para confirmar o acesso.",
         });
 
-        // Se Confirm Email estiver ligado, normalmente o usuário não entra imediatamente.
         setLocation("/login");
         return;
       }
 
-      // login
       const { error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
@@ -94,7 +90,6 @@ export default function AuthPage({ type }: { type: "login" | "register" }) {
         return;
       }
 
-      // O store.tsx vai sincronizar o user via onAuthStateChange
       setLocation("/dashboard");
     } finally {
       setIsLoading(false);

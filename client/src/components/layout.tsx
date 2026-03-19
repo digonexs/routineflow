@@ -23,14 +23,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
     setLocation("/");
   };
 
-  // If landing page, don't show app layout
   if (location === "/" || location === "/login" || location === "/register") {
     return <main className="min-h-screen bg-background">{children}</main>;
   }
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      {/* Sidebar for Desktop */}
       <aside className="hidden md:flex flex-col w-64 border-r border-sidebar-border bg-sidebar p-6 fixed h-full z-10">
         <div className="flex items-center gap-3 mb-10 px-2">
           <img src={logo} alt="RoutineFlow" className="w-8 h-8 rounded-lg" />
@@ -84,7 +82,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-md border-b z-50 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
            <img src={logo} alt="RoutineFlow" className="w-8 h-8 rounded-lg" />
@@ -95,7 +92,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </Button>
       </div>
 
-      {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-40 bg-background pt-20 px-6 animate-in slide-in-from-top-10">
           <nav className="flex flex-col gap-4">
@@ -115,7 +111,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      {/* Main Content */}
       <main className="flex-1 md:ml-64 pt-16 md:pt-0 p-4 md:p-8 max-w-7xl mx-auto w-full">
         {children}
       </main>

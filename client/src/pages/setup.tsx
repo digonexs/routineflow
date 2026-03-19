@@ -119,7 +119,7 @@ function TaskCard({ task, expandedTasks, toggleExpand, handleEdit, handleEditSub
 
 export default function RoutineSetup() {
   const { tasks, addTask, updateTask, deleteTask, reorderTasks } = useApp();
-  const [activeDay, setActiveDay] = useState("1"); // Use string for select
+  const [activeDay, setActiveDay] = useState("1");
   const [newTitle, setNewTitle] = useState("");
   const [subtasks, setSubtasks] = useState<string[]>([]);
   const [newSubtask, setNewSubtask] = useState("");
@@ -188,7 +188,6 @@ export default function RoutineSetup() {
   const [localDayTasks, setLocalDayTasks] = useState<Task[]>(storeDayTasks);
   const localDayTasksRef = useRef(localDayTasks);
 
-  // Sync when day changes or tasks are added/deleted (but not during drag)
   useEffect(() => {
     setLocalDayTasks(storeDayTasks);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -212,7 +211,6 @@ export default function RoutineSetup() {
         <h1 className="text-2xl font-heading font-bold">Configurar Rotina</h1>
       </div>
 
-      {/* Day Selector - Combobox/Select */}
       <div className="space-y-2">
         <Label>Dia da Semana</Label>
         <Select value={activeDay} onValueChange={setActiveDay}>

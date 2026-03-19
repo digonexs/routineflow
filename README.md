@@ -1,175 +1,171 @@
-# RoutineFlow — Documentação Técnica
+# RoutineFlow
 
 > Aplicação web mobile-first para rastreamento de hábitos e rotinas semanais.
+
+**Produção:** [routineflow-sepia.vercel.app](https://routineflow-sepia.vercel.app/)
 
 ---
 
 ## Sumário
 
 1. [Visão Geral](#1-visão-geral)
-2. [Demonstração](#2-demonstração)
-3. [Funcionalidades](#3-funcionalidades)
-4. [Arquitetura](#4-arquitetura)
-5. [Stack Tecnológica](#5-stack-tecnológica)
-6. [Decisões Técnicas](#6-decisões-técnicas)
-7. [Modelo de Dados](#7-modelo-de-dados)
-8. [Como Executar Localmente](#8-como-executar-localmente)
-9. [Variáveis de Ambiente](#9-variáveis-de-ambiente)
-10. [Deploy](#10-deploy)
-11. [Rotas da Aplicação](#11-rotas-da-aplicação)
-12. [Responsividade](#12-responsividade)
-13. [Tema e Design System](#13-tema-e-design-system)
-14. [Regras de Negócio](#14-regras-de-negócio)
-15. [Créditos](#15-créditos)
+2. [Funcionalidades](#2-funcionalidades)
+3. [Arquitetura](#3-arquitetura)
+4. [Stack Tecnológica](#4-stack-tecnológica)
+5. [Decisões Técnicas](#5-decisões-técnicas)
+6. [Modelo de Dados](#6-modelo-de-dados)
+7. [Regras de Negócio](#7-regras-de-negócio)
+8. [Rotas da Aplicação](#8-rotas-da-aplicação)
+9. [Responsividade e Design System](#9-responsividade-e-design-system)
+10. [Como Executar Localmente](#10-como-executar-localmente)
+11. [Variáveis de Ambiente](#11-variáveis-de-ambiente)
+12. [Deploy](#12-deploy)
+13. [Créditos](#13-créditos)
 
 ---
 
 ## 1. Visão Geral
 
-**RoutineFlow** é uma aplicação SPA (Single Page Application) que permite a usuários:
+**RoutineFlow** é uma SPA (Single Page Application) para gerenciamento de rotinas e hábitos pessoais. O usuário configura tarefas recorrentes por dia da semana e tarefas avulsas para datas específicas, marcando conclusões diariamente e visualizando sua consistência ao longo do tempo em um mapa de calor.
 
-- Configurar tarefas recorrentes para cada dia da semana
-- Criar tarefas avulsas para datas específicas
-- Acompanhar a conclusão diária com checkboxes hierárquicos (tarefa + subtarefas)
-- Visualizar a consistência ao longo do tempo em um mapa de calor interativo
-
-### Público-alvo
-- Pessoas que desejam organizar suas rotinas diárias
-- Usuários que buscam construir hábitos duradouros
-- Indivíduos motivados por visualização de progresso
+Toda a persistência é feita via Supabase (PostgreSQL + Auth), sem nenhum servidor próprio. O frontend é servido pelo Vercel.
 
 ---
 
-## 2. Demonstração
+## 2. Funcionalidades
 
-A aplicação está publicada em produção via Vercel. Basta criar uma conta para começar a usar.
-
----
-
-## 3. Funcionalidades
-
-### 3.1 Autenticação
-- Cadastro com nome, e-mail e senha (mínimo 6 caracteres)
+### Autenticação
+- Cadastro com nome, e-mail e senha
 - Login com persistência de sessão via Supabase Auth (JWT)
-- Logout com limpeza de estado e redirecionamento automático
-- Dados completamente isolados por usuário
+- Logout com limpeza de estado local e redirecionamento automático
+- Dados completamente isolados por usuário (Row Level Security no Supabase)
 
-### 3.2 Configurar Rotina (tarefas recorrentes)
-- Criar tarefas associadas a um dia fixo da semana (Dom–Sáb)
-- Adicionar múltiplas subtarefas por tarefa
+### Configurar Rotina — tarefas recorrentes
+- Criar tarefas associadas a um dia fixo da semana (0 = Domingo … 6 = Sábado)
+- Adicionar, editar e remover subtarefas por tarefa
+- Reordenar tarefas via drag-and-drop (posição persistida no banco)
 - Editar título e subtarefas de tarefas existentes
-- Excluir tarefas com feedback visual
-- Interface em abas, uma por dia da semana
+- Excluir tarefas
 
-### 3.3 Dashboard Diário
-- Seleção de qualquer data (dia, mês e ano independentes)
-- Exibe tarefas recorrentes do dia da semana correspondente
+### Dashboard Diário
+- Seletor de data independente (dia, mês e ano via dropdowns)
+- Exibe tarefas recorrentes do dia da semana correspondente à data selecionada
 - Exibe tarefas avulsas criadas para aquela data exata
-- Checkboxes interativos com lógica hierárquica:
-  - Marcar a tarefa pai marca todas as subtarefas
-  - Completar todas as subtarefas marca o pai automaticamente
-  - Desmarcar uma subtarefa desmarca o pai
-- Porcentagem de progresso em tempo real
-- Mensagens motivacionais por dia da semana
+- Criar, editar e excluir tarefas avulsas diretamente no dashboard
+- Checkboxes com lógica hierárquica:
+  - Marcar a tarefa pai → todas as subtarefas são marcadas
+  - Completar todas as subtarefas → pai é marcado automaticamente
+  - Desmarcar qualquer subtarefa → pai é desmarcado
+- Barra de progresso por tarefa (% de subtarefas concluídas)
+- Percentual de sucesso do dia em tempo real
+- Mensagem motivacional por dia da semana
+- Animações de entrada e saída com Framer Motion
 
-### 3.4 Histórico e Mapa de Calor
-- Mapa de calor responsivo:
-  - **Mobile:** 49 dias (7 semanas)
-  - **Desktop:** 364 dias (1 ano completo)
-- Escala de cores por porcentagem de conclusão:
-  - Cinza → 0%
-  - Azul claro → 1–29%
-  - Azul médio → 30–59%
-  - Azul intenso → 60–100%
-- Tooltips com data e % ao passar o mouse
-- Legenda de dias da semana (S T Q Q S S D)
-
-### 3.5 Interface
-- Design mobile-first
-- Sidebar fixa no desktop / menu hambúrguer no mobile
-- Tema escuro com azul elétrico como cor primária
-- Animações via Framer Motion
-- Notificações toast com feedback contextual
+### Histórico — Mapa de Calor
+- **Mobile:** 49 dias (7 semanas)
+- **Desktop:** 364 dias (1 ano)
+- Escala de cores pela % de conclusão do dia (cinza → azul claro → azul médio → azul intenso)
+- Tooltip com data e percentual ao passar o cursor
+- Legenda de dias da semana
 
 ---
 
-## 4. Arquitetura
+## 3. Arquitetura
 
-### 4.1 Fluxo de dados
+### Fluxo de entrada
 
 ```
 main.tsx
   └── App.tsx
-        └── AppProvider (React Context)
-              └── Router (Wouter)
-                    ├── /               → landing.tsx
-                    ├── /login          → auth.tsx
-                    ├── /register       → auth.tsx
-                    ├── /dashboard      → dashboard.tsx  (protegida)
-                    ├── /setup          → setup.tsx      (protegida)
-                    └── /analytics      → analytics.tsx  (protegida)
+        └── QueryClientProvider
+              └── AppProvider  (React Context — estado global)
+                    └── TooltipProvider
+                          └── Router (Wouter)
+                                ├── /               → landing.tsx
+                                ├── /login          → auth.tsx
+                                ├── /register       → auth.tsx
+                                ├── /dashboard      → dashboard.tsx  [protegida]
+                                ├── /setup          → setup.tsx      [protegida]
+                                └── /analytics      → analytics.tsx  [protegida]
 ```
 
-### 4.2 Estrutura de diretórios
+Rotas protegidas são envolvidas por `ProtectedRoute`, que redireciona para `/login` quando não há sessão ativa.
+
+### Estrutura de diretórios
 
 ```
-Daily-Rhythm/
+routineflow/
 ├── client/
 │   ├── index.html
 │   └── src/
-│       ├── App.tsx                  # Definição de rotas e proteção
-│       ├── main.tsx                 # Ponto de entrada React DOM
-│       ├── index.css                # Estilos globais + tema Tailwind v4
+│       ├── App.tsx                  # Roteamento e proteção de rotas
+│       ├── main.tsx                 # Entry point — ReactDOM.createRoot
+│       ├── index.css                # Variáveis CSS + tema Tailwind v4
 │       ├── components/
-│       │   ├── ui/                  # 57+ componentes shadcn/ui
-│       │   ├── layout.tsx           # Shell da aplicação + navegação
-│       │   └── heatmap.tsx          # Mapa de calor interativo
+│       │   ├── ui/                  # 12 componentes shadcn/ui (apenas os utilizados)
+│       │   │   ├── button.tsx
+│       │   │   ├── calendar.tsx
+│       │   │   ├── card.tsx
+│       │   │   ├── dialog.tsx
+│       │   │   ├── input.tsx
+│       │   │   ├── label.tsx
+│       │   │   ├── popover.tsx
+│       │   │   ├── progress.tsx
+│       │   │   ├── select.tsx
+│       │   │   ├── toast.tsx
+│       │   │   ├── toaster.tsx
+│       │   │   └── tooltip.tsx
+│       │   ├── layout.tsx           # Shell da aplicação: sidebar (desktop) + menu hambúrguer (mobile)
+│       │   └── heatmap.tsx          # Mapa de calor interativo com tooltip
 │       ├── pages/
-│       │   ├── landing.tsx          # Página pública inicial
-│       │   ├── auth.tsx             # Login e cadastro
-│       │   ├── dashboard.tsx        # Rastreamento diário
-│       │   ├── setup.tsx            # Configuração da rotina semanal
+│       │   ├── landing.tsx          # Página pública com hero + features
+│       │   ├── auth.tsx             # Login e cadastro (componente único, controlado pela prop `type`)
+│       │   ├── dashboard.tsx        # Rastreamento diário — tarefas recorrentes e avulsas
+│       │   ├── setup.tsx            # Configuração da rotina semanal com drag-and-drop
 │       │   ├── analytics.tsx        # Histórico e mapa de calor
 │       │   └── not-found.tsx        # Página 404
 │       ├── lib/
-│       │   ├── store.tsx            # Context API — estado global e lógica de negócio
+│       │   ├── store.tsx            # AppContext — todo o estado e lógica de negócio
 │       │   ├── supabase.ts          # Inicialização do cliente Supabase
-│       │   ├── queryClient.ts       # Configuração do TanStack Query
-│       │   └── utils.ts             # Utilitários (cn helper)
+│       │   ├── queryClient.ts       # Configuração do TanStack Query (instância global)
+│       │   └── utils.ts             # Helper `cn` (clsx + tailwind-merge)
 │       └── hooks/
-│           └── use-toast.ts         # Hook de notificações toast
-├── attached_assets/                 # Assets e imagens do projeto
+│           └── use-toast.ts         # Sistema de notificações toast (estado externo)
+├── attached_assets/
+│   └── generated_images/
+│       └── minimalist_blue_abstract_habit_tracker_logo.png
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts
 ├── postcss.config.js
-└── vercel.json                      # Configuração de SPA routing no Vercel
+└── vercel.json
 ```
 
-### 4.3 Gerenciamento de estado
+### Gerenciamento de estado
 
-O estado global é gerenciado via **React Context API** em [client/src/lib/store.tsx](client/src/lib/store.tsx). Toda a lógica de negócio (CRUD de tarefas, toggles, cálculo de progresso) reside no contexto, mantendo as páginas responsáveis apenas pela apresentação.
+Todo o estado da aplicação vive no `AppProvider` ([client/src/lib/store.tsx](client/src/lib/store.tsx)), exposto via `useApp()`. As páginas consomem apenas o que precisam — nenhuma lógica de negócio fica fora do store.
+
+O contexto sincroniza com o Supabase Auth via `onAuthStateChange` e carrega os dados do banco quando o `userId` muda.
 
 ```typescript
-// Interface do AppContext
-{
+type AppContextType = {
   // Estado
   user: User | null
-  tasks: Task[]           // Tarefas recorrentes (por dia da semana)
-  dailyTasks: DailyTask[] // Tarefas avulsas (por data específica)
-  logs: Record<string, Record<string, boolean>> // Histórico de conclusões
+  tasks: Task[]            // tarefas recorrentes (por dia da semana)
+  dailyTasks: DailyTask[]  // tarefas avulsas (por data específica)
+  logs: Record<string, Record<string, boolean>>  // date → { itemId: done }
 
-  // Autenticação
-  login(email, password): Promise<void>
-  logout(): Promise<void>
+  // Auth
+  logout(): void
 
   // Tarefas recorrentes
-  addTask(title, dayOfWeek, subtasks): Promise<void>
+  addTask(title, dayOfWeek, subtasks?): Promise<void>
   updateTask(taskId, title, subtasks): Promise<void>
   deleteTask(taskId): Promise<void>
+  reorderTasks(dayOfWeek, orderedIds): Promise<void>
 
   // Tarefas avulsas
-  addDailyTask(title, date, subtasks): Promise<void>
+  addDailyTask(title, date, subtasks?): Promise<void>
   updateDailyTask(taskId, title, subtasks): Promise<void>
   deleteDailyTask(taskId): Promise<void>
 
@@ -181,22 +177,22 @@ O estado global é gerenciado via **React Context API** em [client/src/lib/store
 }
 ```
 
-### 4.4 Backend — Supabase
+### Backend — Supabase
 
-Toda a persistência é feita via **Supabase** (PostgreSQL gerenciado + Auth):
+Sem servidor próprio. Toda a persistência usa o SDK do Supabase direto do cliente.
 
 | Tabela | Descrição |
 |---|---|
 | `users` | Gerenciada pelo Supabase Auth |
-| `tasks` | Tarefas recorrentes por dia da semana |
-| `task_subtasks` | Subtarefas de tarefas recorrentes |
-| `daily_tasks` | Tarefas avulsas por data específica |
-| `daily_subtasks` | Subtarefas de tarefas avulsas |
-| `checks` | Log de conclusões (user_id + date + item_id + done) |
+| `tasks` | Tarefas recorrentes — `user_id`, `title`, `day_of_week`, `position` |
+| `task_subtasks` | Subtarefas de tarefas recorrentes — `task_id`, `title` |
+| `daily_tasks` | Tarefas avulsas — `user_id`, `title`, `date` |
+| `daily_subtasks` | Subtarefas de tarefas avulsas — `daily_task_id`, `title` |
+| `checks` | Log de conclusões — `user_id`, `date`, `item_id`, `done` (unique: user_id + date + item_id) |
 
 ---
 
-## 5. Stack Tecnológica
+## 4. Stack Tecnológica
 
 ### Core
 
@@ -210,25 +206,25 @@ Toda a persistência é feita via **Supabase** (PostgreSQL gerenciado + Auth):
 
 | Tecnologia | Versão | Propósito |
 |---|---|---|
-| Wouter | 3.3.5 | Roteamento leve (~1.5 KB) |
+| Wouter | 3.3.5 | Roteamento leve no cliente (~1.5 KB) |
 | React Context API | — | Estado global da aplicação |
-| TanStack React Query | 5.60.5 | Gerenciamento de estado servidor |
+| TanStack React Query | 5.60.5 | Instância de QueryClient (disponível para uso futuro) |
 
-### Backend
+### Backend as a Service
 
 | Tecnologia | Versão | Propósito |
 |---|---|---|
-| Supabase JS | 2.90.1 | Autenticação + banco de dados |
+| Supabase JS | 2.90.1 | Auth (JWT) + banco PostgreSQL + RLS |
 
 ### UI e Estilos
 
 | Tecnologia | Versão | Propósito |
 |---|---|---|
-| Tailwind CSS | 4.1.14 | Framework CSS utilitário |
-| shadcn/ui + Radix UI | — | Componentes acessíveis |
-| Framer Motion | 12.23.24 | Animações e transições |
+| Tailwind CSS | 4.1.14 | Framework CSS utilitário via plugin Vite |
+| shadcn/ui + Radix UI | — | 12 componentes acessíveis e sem estilo próprio |
+| Framer Motion | 12.23.24 | Animações, transições e drag-and-drop (Reorder) |
 | Lucide React | 0.545.0 | Ícones |
-| Sonner | 2.0.7 | Notificações toast |
+| react-day-picker | 9.11.1 | Componente de calendário |
 
 ### Formulários e Validação
 
@@ -242,44 +238,51 @@ Toda a persistência é feita via **Supabase** (PostgreSQL gerenciado + Auth):
 
 | Tecnologia | Versão | Propósito |
 |---|---|---|
-| date-fns | 3.6.0 | Manipulação de datas |
-| clsx + tailwind-merge | — | Composição de classes CSS |
-| next-themes | 0.4.6 | Gerenciamento de tema |
-| Recharts | 2.15.4 | Gráficos |
+| date-fns | 3.6.0 | Formatação e manipulação de datas |
+| clsx + tailwind-merge | — | Composição condicional de classes CSS |
 
 ### Tipografia
 
-- **Outfit** — Headings (fonte display moderna)
-- **Inter** — Body text (alta legibilidade)
+- **Outfit** — Headings (`font-heading`)
+- **Inter** — Body text
 
 ---
 
-## 6. Decisões Técnicas
+## 5. Decisões Técnicas
 
-### React Context vs Redux
-O escopo de estado da aplicação (usuário, tarefas, logs) não justifica a complexidade do Redux ou Zustand. O Context API é suficiente para o volume de re-renders e evita boilerplate desnecessário.
+### React Context API em vez de Zustand/Redux
+O escopo de estado da aplicação é limitado: um usuário, suas tarefas e seus logs. O Context API é suficiente para essa carga e evita dependência extra. O `useMemo` no value do provider previne re-renders desnecessários.
 
 ### Supabase como BaaS
 - PostgreSQL gerenciado sem configuração de servidor
-- Auth com JWT integrado nativamente
+- Auth com JWT integrado — sem precisar construir autenticação
 - SDK JavaScript com tipagem completa
-- Tier gratuito adequado para o estágio atual do produto
-- Elimina a necessidade de construir e manter uma API REST própria
+- Row Level Security para isolamento de dados por usuário
+- Elimina a necessidade de uma API REST própria
 
-### Wouter vs React Router
-Bundle ~7x menor (1.5 KB vs ~10 KB). A API cobre todas as necessidades de roteamento desta aplicação (rotas simples, parâmetros, redirecionamento).
+### Wouter em vez de React Router
+Bundle ~7× menor (1.5 KB vs ~10 KB). A API cobre todas as necessidades da aplicação: rotas simples, redirecionamento e guards via componente.
 
 ### Tailwind CSS v4
-A versão 4 integra diretamente via plugin Vite, sem arquivo de configuração externo obrigatório. O sistema de design é definido inteiramente via variáveis CSS no [client/src/index.css](client/src/index.css), facilitando customizações de tema.
+A v4 integra via plugin Vite, sem `tailwind.config.js` externo. Todo o design system (cores, fontes, raios) é definido como variáveis CSS no `index.css`, tornando o tema facilmente customizável sem tocar em JavaScript.
 
 ### Dois modelos de tarefa: `Task` e `DailyTask`
-- **Task** — tarefa recorrente, amarrada a um dia da semana (ex: "Academia toda segunda")
-- **DailyTask** — tarefa avulsa para uma data específica (ex: "Consulta médica em 15/03")
+- **`Task`** — recorrente, atrelada a um `dayOfWeek` (0–6). Aparece toda vez que aquele dia da semana chegar.
+- **`DailyTask`** — avulsa, atrelada a uma data exata (`YYYY-MM-DD`). Aparece apenas naquele dia.
 
-Ambos contribuem para o cálculo de progresso do dia, dando flexibilidade sem poluir a rotina semanal com exceções.
+Ambos contribuem igualmente para o cálculo de progresso, permitindo flexibilidade sem poluir a rotina semanal com exceções.
+
+### Drag-and-drop com Framer Motion Reorder
+A reordenação de tarefas usa `Reorder.Group` e `Reorder.Item` do Framer Motion. A ordem é persistida no banco na coluna `position` da tabela `tasks`, sendo carregada ordenada pelo servidor.
+
+### Otimistic UI no `toggleTask`
+A função `toggleTask` aplica a mudança localmente de forma imediata (`applyLocal`) e persiste no banco em seguida. O usuário vê o feedback visual instantâneo, sem esperar o round-trip ao Supabase.
+
+### Carregamento de checks com janela de 120 dias
+O histórico (`checks`) não é carregado infinitamente — apenas os últimos 120 dias. Isso mantém o payload inicial pequeno e é suficiente para o mapa de calor (máximo 364 dias configurável).
 
 ### SPA routing no Vercel
-O [vercel.json](vercel.json) redireciona todas as rotas para `index.html`, permitindo que o Wouter gerencie a navegação no lado do cliente sem erros 404 em refresh ou acesso direto por URL.
+O `vercel.json` redireciona todas as rotas para `index.html`, permitindo que o Wouter gerencie a navegação no cliente sem erros 404 em refresh ou acesso direto por URL.
 
 ```json
 {
@@ -287,146 +290,106 @@ O [vercel.json](vercel.json) redireciona todas as rotas para `index.html`, permi
 }
 ```
 
-### Design Mobile-First
-O CSS é escrito pensando em telas pequenas por padrão. Adaptações para desktop usam o prefixo `md:` (≥768 px). O componente de mapa de calor alterna entre 49 dias (mobile) e 364 dias (desktop) usando detecção de breakpoint via hook.
-
 ---
 
-## 7. Modelo de Dados
+## 6. Modelo de Dados
 
-### User
+### Tipos TypeScript
+
 ```typescript
-{
-  id: string        // UUID gerado pelo Supabase Auth
+type SubTask = {
+  id: string
+  title: string
+}
+
+type Task = {
+  id: string
+  title: string
+  dayOfWeek: number  // 0 = Domingo … 6 = Sábado
+  subtasks: SubTask[]
+}
+
+type DailyTask = {
+  id: string
+  title: string
+  date: string       // YYYY-MM-DD
+  subtasks: SubTask[]
+}
+
+type User = {
+  id: string         // UUID do Supabase Auth
   name: string
   email: string
 }
-```
 
-### Task (recorrente)
-```typescript
-{
-  id: string
-  title: string
-  dayOfWeek: number  // 0 = Domingo ... 6 = Sábado
-  subtasks: SubTask[]
-}
-```
-
-### DailyTask (avulsa)
-```typescript
-{
-  id: string
-  title: string
-  date: string       // formato YYYY-MM-DD
-  subtasks: SubTask[]
-}
-```
-
-### SubTask
-```typescript
-{
-  id: string
-  title: string
-}
-```
-
-### Log de conclusões
-```typescript
-// Estrutura em memória (espelhada na tabela `checks` do Supabase)
-logs: Record<
-  string,          // date (YYYY-MM-DD)
+// Espelhado na tabela `checks`
+type Logs = Record<
+  string,            // date (YYYY-MM-DD)
   Record<
-    string,        // itemId (task ou subtask)
-    boolean        // concluído?
+    string,          // itemId (UUID de task ou subtask)
+    boolean          // concluído?
   >
 >
 ```
 
 ---
 
-## 8. Como Executar Localmente
+## 7. Regras de Negócio
 
-### Pré-requisitos
+### Autenticação
 
-- **Node.js** 18 LTS ou superior
-- **npm** 9+ (incluso com o Node.js)
-- Conta no [Supabase](https://supabase.com) com as tabelas configuradas
-
-### Passos
-
-```bash
-# 1. Clone o repositório
-git clone <url-do-repositório>
-cd Daily-Rhythm
-
-# 2. Instale as dependências
-npm install
-
-# 3. Configure as variáveis de ambiente (veja a seção 9)
-cp .env.example .env
-# Edite o .env com suas credenciais do Supabase
-
-# 4. Inicie o servidor de desenvolvimento
-npm run dev
-# Disponível em http://localhost:5173
-```
-
-### Scripts disponíveis
-
-| Comando | Descrição |
+| ID | Regra |
 |---|---|
-| `npm run dev` | Inicia o servidor de desenvolvimento com HMR |
-| `npm run build` | Gera o build de produção em `dist/` |
-| `npm run preview` | Serve o build de produção localmente |
-| `npm run check` | Checagem de tipos TypeScript sem emissão de arquivos |
+| RN01 | E-mail deve ser único no sistema |
+| RN02 | Senha com mínimo de 6 caracteres |
+| RN03 | Nome obrigatório no cadastro (mínimo 3 caracteres) |
+| RN04 | Sessão mantida até logout explícito |
+
+### Tarefas
+
+| ID | Regra |
+|---|---|
+| RN05 | Cada tarefa recorrente pertence a exatamente um dia da semana |
+| RN06 | Tarefas avulsas pertencem a uma data específica (`YYYY-MM-DD`) |
+| RN07 | Tarefas podem ter zero ou mais subtarefas |
+| RN08 | Título da tarefa é obrigatório |
+| RN09 | A posição das tarefas recorrentes é persistida no banco (coluna `position`) |
+
+### Lógica de conclusão (hierárquica)
+
+| ID | Regra |
+|---|---|
+| RN10 | Marcar tarefa pai → todas as subtarefas são marcadas |
+| RN11 | Completar todas as subtarefas → tarefa pai marcada automaticamente |
+| RN12 | Desmarcar qualquer subtarefa → tarefa pai desmarcada |
+| RN13 | Progresso = (itens concluídos ÷ total de itens) × 100 |
+| RN14 | Tarefas recorrentes e avulsas contribuem igualmente para o progresso do dia |
+
+### Mapa de calor
+
+| ID | Regra |
+|---|---|
+| RN15 | Dias sem tarefas configuradas exibem 0% (cinza) |
+| RN16 | A janela exibida parte da data atual para o passado |
+| RN17 | Checks carregados cobrem os últimos 120 dias |
 
 ---
 
-## 9. Variáveis de Ambiente
+## 8. Rotas da Aplicação
 
-Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
-
-```env
-VITE_SUPABASE_URL=https://<seu-projeto>.supabase.co
-VITE_SUPABASE_ANON_KEY=<sua-anon-key>
-```
-
-Ambas as variáveis são encontradas no painel do Supabase em **Project Settings → API**.
-
-> **Importante:** O prefixo `VITE_` é obrigatório para que o Vite exponha as variáveis ao código do cliente.
-
----
-
-## 10. Deploy
-
-A aplicação é publicada no **Vercel** com integração contínua a partir da branch `main`.
-
-### Configuração no Vercel
-
-1. Importe o repositório no painel do Vercel
-2. Configure as variáveis de ambiente (`VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`)
-3. O Vercel detecta automaticamente o Vite; o comando de build é `npm run build` e o diretório de saída é `dist/`
-4. O arquivo [vercel.json](vercel.json) garante que todas as rotas sejam redirecionadas para `index.html` (necessário para SPA)
-
----
-
-## 11. Rotas da Aplicação
-
-| Rota | Página | Acesso |
+| Rota | Componente | Acesso |
 |---|---|---|
-| `/` | Landing page | Público |
-| `/login` | Login | Público |
-| `/register` | Cadastro | Público |
-| `/dashboard` | Rastreamento diário | Autenticado |
-| `/setup` | Configurar rotina semanal | Autenticado |
-| `/analytics` | Histórico e mapa de calor | Autenticado |
-
-Rotas protegidas redirecionam para `/login` quando não há sessão ativa.
+| `/` | `landing.tsx` | Público |
+| `/login` | `auth.tsx` (type="login") | Público — redireciona para `/dashboard` se logado |
+| `/register` | `auth.tsx` (type="register") | Público — redireciona para `/dashboard` se logado |
+| `/dashboard` | `dashboard.tsx` | Autenticado |
+| `/setup` | `setup.tsx` | Autenticado |
+| `/analytics` | `analytics.tsx` | Autenticado |
+| `*` | `not-found.tsx` | Público |
 
 ---
 
-## 12. Responsividade
+## 9. Responsividade e Design System
 
 ### Breakpoints
 
@@ -439,82 +402,177 @@ Rotas protegidas redirecionam para `/login` quando não há sessão ativa.
 
 | Elemento | Mobile | Desktop |
 |---|---|---|
-| Navegação | Menu hambúrguer (overlay) | Sidebar fixa lateral |
+| Navegação | Menu hambúrguer com overlay animado | Sidebar fixa de 256 px |
 | Mapa de calor | 49 dias (7 semanas) | 364 dias (1 ano) |
-| Seletor de data | Dropdowns empilhados | Dropdowns em linha |
+| Seletor de data | Dropdowns em linha (flex-1) | Dropdowns com larguras fixas |
+| Padding do conteúdo | `p-4`, `pt-16` (compensa header fixo) | `p-8`, `ml-64` (compensa sidebar) |
 
----
+### Tema
 
-## 13. Tema e Design System
+O tema é definido inteiramente por variáveis CSS em [client/src/index.css](client/src/index.css) e consumido pelo Tailwind v4.
 
-O tema é definido como variáveis CSS em [client/src/index.css](client/src/index.css) e consumido pelo Tailwind v4.
-
-### Paleta de cores principal
-
-| Variável | Valor HSL | Uso |
-|---|---|---|
-| `--primary` | `217 91% 60%` | Azul elétrico — CTAs e destaques |
-| `--background` | `222 47% 11%` | Fundo escuro da aplicação |
-| `--card` | `217 33% 17%` | Fundo de cards e painéis |
-| `--muted` | `215 20% 65%` | Texto secundário e placeholders |
-| `--foreground` | `210 40% 98%` | Texto principal |
+| Variável CSS | Uso |
+|---|---|
+| `--primary` | Azul elétrico — CTAs, destaques, checkboxes |
+| `--background` | Fundo escuro da aplicação |
+| `--card` | Fundo de cards e painéis |
+| `--muted-foreground` | Texto secundário e placeholders |
+| `--sidebar` / `--sidebar-border` | Cores exclusivas da sidebar |
 
 ### Escala do mapa de calor
 
-| Conclusão | Cor |
+| Conclusão | Classe Tailwind |
 |---|---|
-| 0% | Cinza neutro |
-| 1–29% | Azul claro |
-| 30–59% | Azul médio |
-| 60–100% | Azul intenso |
+| 0% | `bg-muted` |
+| 1–29% | `bg-primary/30` |
+| 30–59% | `bg-primary/60` |
+| 60–100% | `bg-primary` |
 
 ---
 
-## 14. Regras de Negócio
+## 10. Como Executar Localmente
 
-### Autenticação
+### Pré-requisitos
 
-| ID | Regra |
+- **Node.js** 18 LTS ou superior
+- **npm** 9+
+- Projeto no [Supabase](https://supabase.com) com as tabelas criadas
+
+### Setup das tabelas no Supabase
+
+Execute no SQL Editor do Supabase:
+
+```sql
+create table tasks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users not null,
+  title text not null,
+  day_of_week int not null,
+  position int default 0,
+  created_at timestamptz default now()
+);
+
+create table task_subtasks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users not null,
+  task_id uuid references tasks on delete cascade not null,
+  title text not null,
+  created_at timestamptz default now()
+);
+
+create table daily_tasks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users not null,
+  title text not null,
+  date date not null,
+  created_at timestamptz default now()
+);
+
+create table daily_subtasks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users not null,
+  daily_task_id uuid references daily_tasks on delete cascade not null,
+  title text not null,
+  created_at timestamptz default now()
+);
+
+create table checks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users not null,
+  date date not null,
+  item_id uuid not null,
+  done boolean default false,
+  unique(user_id, date, item_id)
+);
+
+-- RLS
+alter table tasks enable row level security;
+alter table task_subtasks enable row level security;
+alter table daily_tasks enable row level security;
+alter table daily_subtasks enable row level security;
+alter table checks enable row level security;
+
+create policy "own tasks" on tasks for all using (auth.uid() = user_id);
+create policy "own task_subtasks" on task_subtasks for all using (auth.uid() = user_id);
+create policy "own daily_tasks" on daily_tasks for all using (auth.uid() = user_id);
+create policy "own daily_subtasks" on daily_subtasks for all using (auth.uid() = user_id);
+create policy "own checks" on checks for all using (auth.uid() = user_id);
+```
+
+### Passos
+
+```bash
+# 1. Clone o repositório
+git clone <url-do-repositório>
+cd routineflow
+
+# 2. Instale as dependências
+npm install
+
+# 3. Configure as variáveis de ambiente
+cp .env.example .env
+# Edite .env com suas credenciais do Supabase
+
+# 4. Inicie o servidor de desenvolvimento
+npm run dev
+# Disponível em http://localhost:5173
+```
+
+### Scripts disponíveis
+
+| Comando | Descrição |
 |---|---|
-| RN01 | E-mail deve ser único no sistema |
-| RN02 | Senha deve ter mínimo de 6 caracteres |
-| RN03 | Nome é obrigatório (mínimo 3 caracteres) |
-| RN04 | Sessão é mantida até logout explícito |
-
-### Tarefas
-
-| ID | Regra |
-|---|---|
-| RN05 | Cada tarefa recorrente pertence a exatamente um dia da semana |
-| RN06 | Tarefas avulsas pertencem a uma data específica (YYYY-MM-DD) |
-| RN07 | Tarefas podem ter zero ou mais subtarefas |
-| RN08 | Título da tarefa é obrigatório |
-
-### Lógica de conclusão
-
-| ID | Regra |
-|---|---|
-| RN09 | Marcar tarefa pai → todas as subtarefas são marcadas |
-| RN10 | Todas as subtarefas marcadas → tarefa pai marcada automaticamente |
-| RN11 | Desmarcar qualquer subtarefa → tarefa pai desmarcada |
-| RN12 | Progresso = (itens concluídos ÷ total de itens) × 100 |
-| RN13 | Tarefas recorrentes e avulsas contribuem igualmente para o progresso |
-
-### Mapa de calor
-
-| ID | Regra |
-|---|---|
-| RN14 | Cores baseadas na porcentagem de conclusão do dia |
-| RN15 | Dias sem tarefas configuradas exibem 0% (cinza) |
-| RN16 | A janela exibida é calculada a partir da data atual para o passado |
+| `npm run dev` | Servidor de desenvolvimento com HMR |
+| `npm run build` | Build de produção em `dist/` |
+| `npm run preview` | Serve o build de produção localmente |
+| `npm run check` | Checagem de tipos TypeScript sem emissão |
 
 ---
 
-## 15. Créditos
+## 11. Variáveis de Ambiente
 
-**Desenvolvido por:** Rodrigo Barros
-**LinkedIn:** [linkedin.com/in/rodrigocavalcantedebarros](https://www.linkedin.com/in/rodrigocavalcantedebarros/)
+Crie um arquivo `.env` na raiz do projeto:
+
+```env
+VITE_SUPABASE_URL=https://<seu-projeto>.supabase.co
+VITE_SUPABASE_ANON_KEY=<sua-anon-key>
+```
+
+Ambas encontradas no painel do Supabase em **Project Settings → API**.
+
+> O prefixo `VITE_` é obrigatório para que o Vite exponha as variáveis ao bundle do cliente.
 
 ---
 
-*Documentação atualizada em Fevereiro de 2026 — Versão 2.0*
+## 12. Deploy
+
+A aplicação é publicada no **Vercel** com deploy contínuo a partir da branch `main`.
+
+### Configuração no Vercel
+
+1. Importe o repositório no painel do Vercel
+2. Adicione as variáveis de ambiente: `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`
+3. O Vercel detecta automaticamente o Vite:
+   - **Build command:** `npm run build`
+   - **Output directory:** `dist`
+   - **Root directory:** `.` (raiz do repositório)
+4. O [vercel.json](vercel.json) garante que todas as rotas sejam redirecionadas para `index.html`
+
+### Alias de paths (Vite)
+
+| Alias | Resolve para |
+|---|---|
+| `@` | `client/src/` |
+| `@assets` | `attached_assets/` |
+
+---
+
+## 13. Créditos
+
+Desenvolvido por **Rodrigo Barros**
+
+[linkedin.com/in/rodrigocavalcantedebarros](https://www.linkedin.com/in/rodrigocavalcantedebarros/)
+
+---
+
+*Última atualização: Março de 2026*

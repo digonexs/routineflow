@@ -12,7 +12,6 @@ import RoutineSetup from "@/pages/setup";
 import { Layout } from "@/components/layout";
 import { AppProvider, useApp } from "@/lib/store";
 
-// Protected Route Wrapper
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user } = useApp();
   
@@ -37,7 +36,6 @@ function Router() {
           {user ? <Redirect to="/dashboard" /> : <AuthPage type="register" />}
         </Route>
         
-        {/* Protected Routes */}
         <Route path="/dashboard">
           <ProtectedRoute component={Dashboard} />
         </Route>

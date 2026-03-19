@@ -68,7 +68,6 @@ export default function Dashboard() {
 
   const motivationalMessage = MOTIVATIONAL_MESSAGES[selectedDate.getDay()];
 
-  // Filter tasks for the selected day of week (0-6)
   const currentDayOfWeek = selectedDate.getDay();
   const todaysTasks = tasks.filter(t => t.dayOfWeek === currentDayOfWeek);
 
@@ -121,7 +120,6 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20 pt-4 md:pt-8">
-      {/* Header with Greeting & Date */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-6xl mx-auto w-full">
         <div>
           <h1 className="text-3xl font-heading font-bold tracking-tight">
@@ -145,10 +143,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Date Picker Selector */}
       <div className="flex justify-center max-w-6xl mx-auto w-full gap-2 px-4">
         <div className="flex flex-1 md:flex-initial gap-2">
-          {/* Dia */}
           <Select 
             value={format(selectedDate, "d")} 
             onValueChange={(val) => {
@@ -169,7 +165,6 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
 
-          {/* Mês */}
           <Select 
             value={format(selectedDate, "M")} 
             onValueChange={(val) => {
@@ -190,7 +185,6 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
 
-          {/* Ano */}
           <Select 
             value={format(selectedDate, "yyyy")} 
             onValueChange={(val) => {
@@ -204,7 +198,7 @@ export default function Dashboard() {
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
               {Array.from({ length: 10 }, (_, i) => {
-                const year = new Date().getFullYear() - 2 + i; // Mostra 2 anos atrás e 7 à frente
+                const year = new Date().getFullYear() - 2 + i;
                 return (
                   <SelectItem key={year} value={year.toString()}>
                     {year}
@@ -217,7 +211,6 @@ export default function Dashboard() {
       </div>
 
       <div className="max-w-6xl mx-auto w-full space-y-8">
-        {/* Recurring Tasks Section */}
         <div className="space-y-4">
            <h2 className="text-xl font-heading font-semibold flex items-center gap-2">
              <CalendarIcon className="w-5 h-5 text-primary" />
@@ -251,7 +244,6 @@ export default function Dashboard() {
            )}
         </div>
 
-        {/* Daily Tasks Section */}
         <div className="space-y-4">
            <div className="flex items-center justify-between">
              <h2 className="text-xl font-heading font-semibold flex items-center gap-2">
@@ -271,7 +263,6 @@ export default function Dashboard() {
              </Button>
            </div>
 
-           {/* Add/Edit Daily Task Form */}
            <AnimatePresence>
              {isAddingDailyTask && (
                <motion.div
@@ -297,7 +288,6 @@ export default function Dashboard() {
                      className="bg-background"
                    />
 
-                   {/* Subtasks */}
                    <div className="space-y-2">
                      <p className="text-xs text-muted-foreground">Subtarefas (opcional)</p>
                      {dailySubtasks.map((st, idx) => (
@@ -371,7 +361,6 @@ export default function Dashboard() {
            )}
         </div>
 
-        {/* Quick Stats or Quote */}
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-100 dark:border-blue-900/30 rounded-xl p-6 mt-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10">
             <Trophy className="w-24 h-24 text-primary" />
